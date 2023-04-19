@@ -20,8 +20,6 @@ A more detailed explanation can be found [at the Let's Encrypt forums](https://c
 ## v4.2.5 (2022-03-21)
 
 * `fixed` Upgrade `axios@0.26.1`
-* `fixed` Upgrade `node-forge@1.3.0` - [CVE-2022-24771](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-24771), [CVE-2022-24772](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-24772), [CVE-2022-24773](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-24773)
-
 
 ## 4.2.4 (2022-03-19)
 
@@ -37,11 +35,6 @@ A more detailed explanation can be found [at the Let's Encrypt forums](https://c
 
 * `added` Directory URLs for ACME providers [Buypass](https://www.buypass.com) and [ZeroSSL](https://zerossl.com)
 * `fixed` Skip already valid authorizations when using `client.auto()`
-
-
-## v4.2.2 (2022-01-10)
-
-* `fixed` Upgrade `node-forge@1.2.0`
 
 
 ## v4.2.1 (2022-01-10)
@@ -97,9 +90,6 @@ A more detailed explanation can be found [at the Let's Encrypt forums](https://c
 
 
 ## v4.0.1 (2020-09-15)
-
-* `fixed` Upgrade `node-forge@0.10.0` - [CVE-2020-7720](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-7720)
-
 
 ## v4.0.0 (2020-05-29)
 
@@ -177,7 +167,6 @@ A more detailed explanation can be found [at the Let's Encrypt forums](https://c
 
 ## v2.2.0 (2018-11-06)
 
-* `added` New [node-forge](https://www.npmjs.com/package/node-forge) crypto interface, removes OpenSSL CLI dependency
 * `added` Support native `crypto.generateKeyPair()` API when generating key pairs
 
 

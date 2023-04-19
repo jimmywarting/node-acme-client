@@ -133,16 +133,6 @@ const [certificateKey, certificateCsr] = await acme.crypto.createCsr({
 });
 ```
 
-
-### Legacy `.forge` interface
-
-The legacy `node-forge` crypto interface is still available for backward compatibility, however this interface is now considered deprecated and will be removed in a future major version of `acme-client`.
-
-You should consider migrating to the new `.crypto` API at your earliest convenience. More details can be found in the [acme-client v5 upgrade guide](docs/upgrade-v5.md).
-
-* __Documentation: [docs/forge.md](docs/forge.md)__
-
-
 ## Auto mode
 
 For convenience an `auto()` method is included in the client that takes a single config object. This method will handle the entire process of getting a certificate for one or multiple domains.

@@ -5,27 +5,52 @@
  */
 
 const net = require('net');
-const { promisify } = require('util');
-const crypto = require('crypto');
+const nodeCrypto = require('crypto');
 const jsrsasign = require('jsrsasign');
 
-const generateKeyPair = promisify(crypto.generateKeyPair);
+// eslint-disable-next-line no-undef
+const { crypto } = globalThis;
 
+function pemToBuffer(pem) {
+    const lines = pem.split('\n');
+    const base64 = lines
+        .filter((line) => !line.startsWith('-----'))
+        .join('');
+    const binary = atob(base64);
+    const buffer = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        buffer[i] = binary.charCodeAt(i);
+    }
+
+    return buffer;
+}
+
+async function createPublicKeyAsync(keyPem) {
+    const keyBuffer = pemToBuffer(keyPem);
+    const publicKey = await crypto.subtle.importKey(
+        'spki',
+        keyBuffer,
+        { name: 'RSA-OAEP', hash: { name: 'SHA-256' } },
+        true, // extractable
+        ['encrypt'] // key usages
+    );
+
+    return publicKey;
+}
 
 /**
  * Determine key type and info by attempting to derive public key
  *
  * @private
- * @param {buffer|string} keyPem PEM encoded private or public key
+ * @param {Buffer|string} keyPem PEM encoded private or public key
  * @returns {object}
  */
-
 function getKeyInfo(keyPem) {
     const result = {
         isRSA: false,
         isECDSA: false,
         signatureAlgorithm: null,
-        publicKey: crypto.createPublicKey(keyPem)
+        publicKey: nodeCrypto.createPublicKey(keyPem)
     };
 
     if (result.publicKey.asymmetricKeyType === 'rsa') {
@@ -43,12 +68,27 @@ function getKeyInfo(keyPem) {
     return result;
 }
 
+/**
+ * @param {ArrayBuffer} buffer
+ * @param {string} label
+ */
+function bufferToPem(buffer, label) {
+    const encoded = String.fromCharCode.apply(null, new Uint8Array(buffer));
+    const base64 = btoa(encoded);
+
+    const lines = base64.match(/.{1,64}/g);
+    const head = `-----BEGIN ${label}-----\n`;
+    const mid = lines ? `${lines.join('\n')}\n` : `${base64}\n`;
+    const foot = `-----END ${label}-----\n`;
+
+    return head + mid + foot;
+}
 
 /**
  * Generate a private RSA key
  *
  * @param {number} [modulusLength] Size of the keys modulus in bits, default: `2048`
- * @returns {Promise<buffer>} PEM encoded private RSA key
+ * @returns {Promise<Buffer>} PEM encoded private RSA key
  *
  * @example Generate private RSA key
  * ```js
@@ -60,36 +100,36 @@ function getKeyInfo(keyPem) {
  * const privateKey = await acme.crypto.createPrivateRsaKey(4096);
  * ```
  */
-
 async function createPrivateRsaKey(modulusLength = 2048) {
-    const pair = await generateKeyPair('rsa', {
+    const algorithm = {
+        name: 'RSA-OAEP',
         modulusLength,
-        privateKeyEncoding: {
-            type: 'pkcs8',
-            format: 'pem'
-        }
-    });
+        publicExponent: new Uint8Array([1, 0, 1]),
+        hash: { name: 'SHA-256' }
+    };
 
-    return Buffer.from(pair.privateKey);
+    const keys = await crypto.subtle.generateKey(
+        algorithm,
+        true, // extractable
+        ['encrypt', 'decrypt'] // key usages
+    );
+
+    const privateKey = await crypto.subtle.exportKey(
+        'pkcs8',
+        keys.privateKey
+    );
+
+    const pemPrivateKey = bufferToPem(privateKey, 'PRIVATE KEY');
+
+    return Buffer.from(pemPrivateKey);
 }
-
-exports.createPrivateRsaKey = createPrivateRsaKey;
-
-
-/**
- * Alias of `createPrivateRsaKey()`
- *
- * @function
- */
-
-exports.createPrivateKey = createPrivateRsaKey;
 
 
 /**
  * Generate a private ECDSA key
  *
  * @param {string} [namedCurve] ECDSA curve name (P-256, P-384 or P-521), default `P-256`
- * @returns {Promise<buffer>} PEM encoded private ECDSA key
+ * @returns {Promise<Buffer>} PEM encoded private ECDSA key
  *
  * @example Generate private ECDSA key
  * ```js
@@ -102,17 +142,27 @@ exports.createPrivateKey = createPrivateRsaKey;
  * ```
  */
 
-exports.createPrivateEcdsaKey = async (namedCurve = 'P-256') => {
-    const pair = await generateKeyPair('ec', {
-        namedCurve,
-        privateKeyEncoding: {
-            type: 'pkcs8',
-            format: 'pem'
-        }
-    });
+async function createPrivateEcdsaKey(namedCurve = 'P-256') {
+    const algorithm = {
+        name: 'ECDSA',
+        namedCurve
+    };
 
-    return Buffer.from(pair.privateKey);
-};
+    const keys = await crypto.subtle.generateKey(
+        algorithm,
+        true, // extractable
+        ['sign', 'verify'] // key usages
+    );
+
+    const privateKey = await crypto.subtle.exportKey(
+        'pkcs8',
+        keys.privateKey
+    );
+
+    const pemPrivateKey = bufferToPem(privateKey, 'PRIVATE KEY');
+
+    return Buffer.from(pemPrivateKey);
+}
 
 
 /**
@@ -127,7 +177,7 @@ exports.createPrivateEcdsaKey = async (namedCurve = 'P-256') => {
  * ```
  */
 
-exports.getPublicKey = (keyPem) => {
+const getPublicKey = (keyPem) => {
     const info = getKeyInfo(keyPem);
 
     const publicKey = info.publicKey.export({
@@ -144,7 +194,7 @@ exports.getPublicKey = (keyPem) => {
  *
  * https://datatracker.ietf.org/doc/html/rfc7517
  *
- * @param {buffer|string} keyPem PEM encoded private or public key
+ * @param {Buffer} keyPem PEM encoded private or public key
  * @returns {object} JSON Web Key
  *
  * @example Get JWK
@@ -152,20 +202,19 @@ exports.getPublicKey = (keyPem) => {
  * const jwk = acme.crypto.getJwk(privateKey);
  * ```
  */
-
 function getJwk(keyPem) {
-    const jwk = crypto.createPublicKey(keyPem).export({
+    const jwk = nodeCrypto.createPublicKey(keyPem).export({
         format: 'jwk'
     });
 
     /* Sort keys */
-    return Object.keys(jwk).sort().reduce((result, k) => {
+    const result = Object.keys(jwk).sort().reduce((result, k) => {
         result[k] = jwk[k];
         return result;
     }, {});
-}
 
-exports.getJwk = getJwk;
+    return result;
+}
 
 
 /**
@@ -213,8 +262,6 @@ function splitPemChain(chainPem) {
         .map(([pem, header]) => jsrsasign.hextopem(jsrsasign.pemtohex(pem, header), header));
 }
 
-exports.splitPemChain = splitPemChain;
-
 
 /**
  * Parse body of PEM encoded object and return a Base64URL string
@@ -224,7 +271,7 @@ exports.splitPemChain = splitPemChain;
  * @returns {string} Base64URL-encoded body
  */
 
-exports.getPemBodyAsB64u = (pem) => {
+const getPemBodyAsB64u = (pem) => {
     const chain = splitPemChain(pem);
 
     if (!chain.length) {
@@ -292,7 +339,7 @@ function parseDomains(params) {
  * ```
  */
 
-exports.readCsrDomains = (csrPem) => {
+const readCsrDomains = (csrPem) => {
     if (Buffer.isBuffer(csrPem)) {
         csrPem = csrPem.toString();
     }
@@ -323,7 +370,7 @@ exports.readCsrDomains = (csrPem) => {
  * ```
  */
 
-exports.readCertificateInfo = (certPem) => {
+const readCertificateInfo = (certPem) => {
     const chain = splitPemChain(certPem);
 
     if (!chain.length) {
@@ -462,7 +509,7 @@ function formatCsrAltNames(altNames) {
  * }, certificateKey);
  */
 
-exports.createCsr = async (data, keyPem = null) => {
+const createCsr = async (data, keyPem = null) => {
     if (!keyPem) {
         keyPem = await createPrivateRsaKey(data.keySize);
     }
@@ -476,7 +523,7 @@ exports.createCsr = async (data, keyPem = null) => {
 
     /* Get key info and JWK */
     const info = getKeyInfo(keyPem);
-    const jwk = getJwk(keyPem);
+    const jwk = await getJwk(keyPem);
     const extensionRequests = [];
 
     /* Missing support for NIST curve names in jsrsasign - https://github.com/kjur/jsrsasign/blob/master/src/asn1x509-1.0.js#L4388-L4393 */
@@ -523,4 +570,17 @@ exports.createCsr = async (data, keyPem = null) => {
 
     /* Done */
     return [keyPem, Buffer.from(pem)];
+};
+
+module.exports = {
+    createPrivateRsaKey,
+    createPrivateEcdsaKey,
+    getPublicKey,
+    getJwk,
+    getPemBodyAsB64u,
+    splitPemChain,
+    readCertificateInfo,
+    createCsr,
+    readCsrDomains,
+    createPrivateKey: createPrivateRsaKey
 };

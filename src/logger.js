@@ -1,30 +1,20 @@
-/**
- * ACME logger
- */
-
-const debug = require('debug')('acme-client');
-
 let logger = () => {};
 
 
 /**
  * Set logger function
  *
- * @param {function} fn Logger function
+ * @param {() => void} fn Logger function
  */
-
 exports.setLogger = (fn) => {
-    logger = fn;
-};
+    logger = fn
+}
 
 
 /**
  * Log message
  *
- * @param {string} Message
+ * @param {string} msg
  */
 
-exports.log = (msg) => {
-    debug(msg);
-    logger(msg);
-};
+exports.log = msg => logger(msg)

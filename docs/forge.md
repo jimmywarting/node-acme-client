@@ -1,12 +1,3 @@
-## Objects
-
-<dl>
-<dt><a href="#forge">forge</a> : <code>object</code></dt>
-<dd><p>Legacy node-forge crypto interface</p>
-<p>DEPRECATION WARNING: This crypto interface is deprecated and will be removed from acme-client in a future
-major release. Please migrate to the new <code>acme.crypto</code> interface at your earliest convenience.</p>
-</dd>
-</dl>
 
 ## Functions
 
@@ -41,33 +32,25 @@ If multiple objects are chained, the first body will be returned</p>
 </dd>
 </dl>
 
-<a name="forge"></a>
-
-## forge : <code>object</code>
-Legacy node-forge crypto interface
-
-DEPRECATION WARNING: This crypto interface is deprecated and will be removed from acme-client in a future
-major release. Please migrate to the new `acme.crypto` interface at your earliest convenience.
-
-**Kind**: global namespace  
+**Kind**: global namespace
 <a name="createPrivateKey"></a>
 
 ## createPrivateKey([size]) ⇒ <code>Promise.&lt;buffer&gt;</code>
 Generate a private RSA key
 
-**Kind**: global function  
-**Returns**: <code>Promise.&lt;buffer&gt;</code> - PEM encoded private RSA key  
+**Kind**: global function
+**Returns**: <code>Promise.&lt;buffer&gt;</code> - PEM encoded private RSA key
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | [size] | <code>number</code> | <code>2048</code> | Size of the key, default: `2048` |
 
-**Example**  
+**Example**
 Generate private RSA key
 ```js
 const privateKey = await acme.forge.createPrivateKey();
 ```
-**Example**  
+**Example**
 Private RSA key with defined size
 ```js
 const privateKey = await acme.forge.createPrivateKey(4096);
@@ -77,14 +60,14 @@ const privateKey = await acme.forge.createPrivateKey(4096);
 ## createPublicKey(key) ⇒ <code>Promise.&lt;buffer&gt;</code>
 Create public key from a private RSA key
 
-**Kind**: global function  
-**Returns**: <code>Promise.&lt;buffer&gt;</code> - PEM encoded public RSA key  
+**Kind**: global function
+**Returns**: <code>Promise.&lt;buffer&gt;</code> - PEM encoded public RSA key
 
 | Param | Type | Description |
 | --- | --- | --- |
 | key | <code>buffer</code> \| <code>string</code> | PEM encoded private RSA key |
 
-**Example**  
+**Example**
 Create public key
 ```js
 const publicKey = await acme.forge.createPublicKey(privateKey);
@@ -95,8 +78,8 @@ const publicKey = await acme.forge.createPublicKey(privateKey);
 Parse body of PEM encoded object from buffer or string
 If multiple objects are chained, the first body will be returned
 
-**Kind**: global function  
-**Returns**: <code>string</code> - PEM body  
+**Kind**: global function
+**Returns**: <code>string</code> - PEM body
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -107,8 +90,8 @@ If multiple objects are chained, the first body will be returned
 ## splitPemChain(str) ⇒ <code>Array.&lt;string&gt;</code>
 Split chain of PEM encoded objects from buffer or string into array
 
-**Kind**: global function  
-**Returns**: <code>Array.&lt;string&gt;</code> - Array of PEM bodies  
+**Kind**: global function
+**Returns**: <code>Array.&lt;string&gt;</code> - Array of PEM bodies
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -119,14 +102,14 @@ Split chain of PEM encoded objects from buffer or string into array
 ## getModulus(input) ⇒ <code>Promise.&lt;buffer&gt;</code>
 Get modulus
 
-**Kind**: global function  
-**Returns**: <code>Promise.&lt;buffer&gt;</code> - Modulus  
+**Kind**: global function
+**Returns**: <code>Promise.&lt;buffer&gt;</code> - Modulus
 
 | Param | Type | Description |
 | --- | --- | --- |
 | input | <code>buffer</code> \| <code>string</code> | PEM encoded private key, certificate or CSR |
 
-**Example**  
+**Example**
 Get modulus
 ```js
 const m1 = await acme.forge.getModulus(privateKey);
@@ -138,14 +121,14 @@ const m3 = await acme.forge.getModulus(certificateRequest);
 ## getPublicExponent(input) ⇒ <code>Promise.&lt;buffer&gt;</code>
 Get public exponent
 
-**Kind**: global function  
-**Returns**: <code>Promise.&lt;buffer&gt;</code> - Exponent  
+**Kind**: global function
+**Returns**: <code>Promise.&lt;buffer&gt;</code> - Exponent
 
 | Param | Type | Description |
 | --- | --- | --- |
 | input | <code>buffer</code> \| <code>string</code> | PEM encoded private key, certificate or CSR |
 
-**Example**  
+**Example**
 Get public exponent
 ```js
 const e1 = await acme.forge.getPublicExponent(privateKey);
@@ -157,14 +140,14 @@ const e3 = await acme.forge.getPublicExponent(certificateRequest);
 ## readCsrDomains(csr) ⇒ <code>Promise.&lt;object&gt;</code>
 Read domains from a Certificate Signing Request
 
-**Kind**: global function  
-**Returns**: <code>Promise.&lt;object&gt;</code> - {commonName, altNames}  
+**Kind**: global function
+**Returns**: <code>Promise.&lt;object&gt;</code> - {commonName, altNames}
 
 | Param | Type | Description |
 | --- | --- | --- |
 | csr | <code>buffer</code> \| <code>string</code> | PEM encoded Certificate Signing Request |
 
-**Example**  
+**Example**
 Read Certificate Signing Request domains
 ```js
 const { commonName, altNames } = await acme.forge.readCsrDomains(certificateRequest);
@@ -177,14 +160,14 @@ console.log(`Alt names: ${altNames.join(', ')}`);
 ## readCertificateInfo(cert) ⇒ <code>Promise.&lt;object&gt;</code>
 Read information from a certificate
 
-**Kind**: global function  
-**Returns**: <code>Promise.&lt;object&gt;</code> - Certificate info  
+**Kind**: global function
+**Returns**: <code>Promise.&lt;object&gt;</code> - Certificate info
 
 | Param | Type | Description |
 | --- | --- | --- |
 | cert | <code>buffer</code> \| <code>string</code> | PEM encoded certificate |
 
-**Example**  
+**Example**
 Read certificate information
 ```js
 const info = await acme.forge.readCertificateInfo(certificate);
@@ -201,8 +184,8 @@ console.log(`Alt names: ${altNames.join(', ')}`);
 ## createCsr(data, [key]) ⇒ <code>Promise.&lt;Array.&lt;buffer&gt;&gt;</code>
 Create a Certificate Signing Request
 
-**Kind**: global function  
-**Returns**: <code>Promise.&lt;Array.&lt;buffer&gt;&gt;</code> - [privateKey, certificateSigningRequest]  
+**Kind**: global function
+**Returns**: <code>Promise.&lt;Array.&lt;buffer&gt;&gt;</code> - [privateKey, certificateSigningRequest]
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -218,14 +201,14 @@ Create a Certificate Signing Request
 | [data.emailAddress] | <code>string</code> |  |
 | [key] | <code>buffer</code> \| <code>string</code> | CSR private key |
 
-**Example**  
+**Example**
 Create a Certificate Signing Request
 ```js
 const [certificateKey, certificateRequest] = await acme.forge.createCsr({
     commonName: 'test.example.com'
 });
 ```
-**Example**  
+**Example**
 Certificate Signing Request with both common and alternative names
 ```js
 const [certificateKey, certificateRequest] = await acme.forge.createCsr({
@@ -234,7 +217,7 @@ const [certificateKey, certificateRequest] = await acme.forge.createCsr({
     altNames: ['foo.example.com', 'bar.example.com']
 });
 ```
-**Example**  
+**Example**
 Certificate Signing Request with additional information
 ```js
 const [certificateKey, certificateRequest] = await acme.forge.createCsr({
@@ -247,7 +230,7 @@ const [certificateKey, certificateRequest] = await acme.forge.createCsr({
     emailAddress: 'contact@example.com'
 });
 ```
-**Example**  
+**Example**
 Certificate Signing Request with predefined private key
 ```js
 const certificateKey = await acme.forge.createPrivateKey();

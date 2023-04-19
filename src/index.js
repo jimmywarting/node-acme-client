@@ -28,8 +28,12 @@ exports.directory = {
  * Crypto
  */
 
+<<<<<<< Updated upstream
 exports.crypto = require('./crypto');
 exports.forge = require('./crypto/forge');
+=======
+exports.crypto = require('./crypto/index.js');
+>>>>>>> Stashed changes
 
 
 /**
