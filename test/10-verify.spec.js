@@ -3,14 +3,8 @@
  */
 
 const { assert } = require('chai');
-<<<<<<< Updated upstream
-const { v4: uuid } = require('uuid');
-const cts = require('./challtestsrv');
-const verify = require('./../src/verify');
-=======
 const cts = require('./challtestsrv.js');
 const verify = require('./../src/verify.js');
->>>>>>> Stashed changes
 
 const uuid = () => crypto.randomUUID()
 
