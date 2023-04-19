@@ -1,15 +1,11 @@
 let logger = () => {};
 
-
 /**
  * Set logger function
  *
  * @param {() => void} fn Logger function
  */
-exports.setLogger = (fn) => {
-    logger = fn
-}
-
+export const setLogger = (fn) =>  logger = fn
 
 /**
  * Log message
@@ -17,4 +13,4 @@ exports.setLogger = (fn) => {
  * @param {string} msg
  */
 
-exports.log = msg => logger(msg)
+export const log = msg => logger(msg)

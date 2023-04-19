@@ -2,8 +2,8 @@
  * ACME auto helper
  */
 
-const { readCsrDomains } = require('./crypto');
-const { log } = require('./logger');
+import { readCsrDomains } from './crypto/index.js';
+import { log } from './logger.js';
 
 const defaultOpts = {
     csr: null,
@@ -25,7 +25,7 @@ const defaultOpts = {
  * @returns {Promise<buffer>} Certificate
  */
 
-module.exports = async function(client, userOpts) {
+export default async function(client, userOpts) {
     const opts = Object.assign({}, defaultOpts, userOpts);
     const accountPayload = { termsOfServiceAgreed: opts.termsOfServiceAgreed };
 

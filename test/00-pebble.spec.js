@@ -2,10 +2,12 @@
  * Pebble Challenge Test Server tests
  */
 
-const { promises: dns } = require('dns');
-const { assert } = require('chai');
-const cts = require('./challtestsrv.js');
-const axios = require('./../src/axios.js');
+
+import { promises as dns } from 'dns';
+import { assert } from 'chai';
+import * as cts from './challtestsrv.js';
+import axios from './../src/axios.js';
+
 const uuid = () => crypto.randomUUID()
 
 const domainName = process.env.ACME_DOMAIN_NAME || 'example.com';

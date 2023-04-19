@@ -3,7 +3,7 @@
  */
 
 // const fs = require('fs').promises;
-const acme = require('./../');
+import acme from '../src/index.js'
 
 
 function log(m) {

@@ -2,8 +2,8 @@
  * Logger tests
  */
 
-const { assert } = require('chai');
-const logger = require('./../src/logger');
+import { assert } from 'chai';
+import * as logger from './../src/logger.js';
 
 
 describe('logger', () => {

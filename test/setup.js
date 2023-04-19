@@ -2,13 +2,13 @@
  * Setup testing
  */
 
-const url = require('url');
-const net = require('net');
-const fs = require('fs');
-const dns = require('dns').promises;
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
-const axios = require('./../src/axios');
+import url from 'url';
+import net from 'net';
+import fs from 'fs';
+import dns from 'dns/promises';
+import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import axios from './../src/axios.js';
 
 
 /**

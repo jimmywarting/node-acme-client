@@ -2,12 +2,13 @@
  * HTTP client tests
  */
 
-const { assert } = require('chai');
-const nock = require('nock');
-const axios = require('./../src/axios');
-const HttpClient = require('./../src/http');
-const pkg = require('./../package.json');
+import { assert } from 'chai';
+import nock from 'nock';
+import axios from './../src/axios.js';
+import HttpClient from './../src/http.js';
+
 const uuid = () => crypto.randomUUID()
+const pkg = { name: 'acme-client', version: '4.0.0' }
 
 describe('http', () => {
     let testClient;

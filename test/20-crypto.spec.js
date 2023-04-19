@@ -2,11 +2,11 @@
  * Crypto tests
  */
 
-const fs = require('fs').promises;
-const path = require('path');
-const { assert } = require('chai');
-const spec = require('./spec');
-const { crypto } = require('./../');
+import fs from 'fs/promises';
+import path from 'path';
+import { assert } from 'chai';
+import spec from './spec.js';
+import { crypto } from './../src/index.js';
 
 const emptyBodyChain1 = `
 -----BEGIN TEST-----
@@ -50,6 +50,7 @@ c
 -----END TEST-----
 `;
 
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 describe('crypto', () => {
     const testCsrDomain = 'example.com';

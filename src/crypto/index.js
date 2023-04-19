@@ -4,9 +4,9 @@
  * @namespace crypto
  */
 
-const net = require('net');
-const nodeCrypto = require('crypto');
-const jsrsasign = require('jsrsasign');
+import net from 'net'
+import nodeCrypto from 'crypto'
+import jsrsasign from 'jsrsasign'
 
 // eslint-disable-next-line no-undef
 const { crypto } = globalThis;
@@ -572,7 +572,7 @@ const createCsr = async (data, keyPem = null) => {
     return [keyPem, Buffer.from(pem)];
 };
 
-module.exports = {
+export {
     createPrivateRsaKey,
     createPrivateEcdsaKey,
     getPublicKey,
@@ -582,5 +582,5 @@ module.exports = {
     readCertificateInfo,
     createCsr,
     readCsrDomains,
-    createPrivateKey: createPrivateRsaKey
+    createPrivateRsaKey as createPrivateKey
 };

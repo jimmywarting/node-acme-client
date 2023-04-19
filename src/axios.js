@@ -2,9 +2,10 @@
  * Axios instance
  */
 
-const axios = require('axios');
-const adapter = require('axios/lib/adapters/http');
-const pkg = require('./../package.json');
+import axios from 'axios';
+import adapter from 'axios/lib/adapters/http.js';
+
+const pkg = { name: 'acme-client', version: '4.0.0' }
 
 
 /**
@@ -37,4 +38,4 @@ instance.defaults.adapter = adapter;
  * Export instance
  */
 
-module.exports = instance;
+export default instance;

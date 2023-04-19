@@ -2,7 +2,7 @@
  * Example of acme.Client API
  */
 
-const acme = require('./../');
+import acme from './../src/index.js';
 
 
 function log(m) {

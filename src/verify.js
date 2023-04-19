@@ -2,10 +2,10 @@
  * ACME challenge verification
  */
 
-const dns = require('dns').promises;
-const { log } = require('./logger');
-const axios = require('./axios');
-const util = require('./util');
+import { promises as dns } from 'dns';
+import { log } from './logger.js';
+import axios from './axios.js';
+import * as util from './util.js';
 
 
 /**
@@ -121,7 +121,7 @@ async function verifyDnsChallenge(authz, challenge, keyAuthorization, prefix = '
  * Export API
  */
 
-module.exports = {
+export default {
     'http-01': verifyHttpChallenge,
     'dns-01': verifyDnsChallenge
 };

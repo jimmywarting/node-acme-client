@@ -2,11 +2,11 @@
  * ACME client tests
  */
 
-const { assert } = require('chai');
-const cts = require('./challtestsrv.js');
-const getCertIssuers = require('./get-cert-issuers.js');
-const spec = require('./spec.js');
-const acme = require('../src/index.js');
+import { assert } from 'chai';
+import * as cts from './challtestsrv.js';
+import * as getCertIssuers from './get-cert-issuers.js';
+import spec from './spec.js';
+import * as acme from '../src/index.js';
 
 const uuid = () => crypto.randomUUID()
 

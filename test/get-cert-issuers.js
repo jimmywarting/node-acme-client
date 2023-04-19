@@ -2,8 +2,8 @@
  * Get ACME certificate issuers
  */
 
-const acme = require('./../');
-const util = require('./../src/util');
+import * as acme from './../src/index.js';
+import * as util from './../src/util.js';
 
 const pebbleManagementUrl = process.env.ACME_PEBBLE_MANAGEMENT_URL || null;
 
@@ -31,7 +31,7 @@ async function getPebbleCertIssuers() {
  * Get certificate issuers
  */
 
-module.exports = async () => {
+export default async () => {
     if (pebbleManagementUrl) {
         return getPebbleCertIssuers();
     }

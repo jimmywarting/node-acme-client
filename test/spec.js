@@ -2,11 +2,9 @@
  * Assertions
  */
 
-const { assert } = require('chai');
+import { assert } from 'chai'
 
 const spec = {};
-module.exports = spec;
-
 
 /**
  * ACME
@@ -176,3 +174,5 @@ spec.jwk.ecdsa = (obj) => {
 
     assert.strictEqual(obj.kty, 'EC');
 };
+
+export default spec;

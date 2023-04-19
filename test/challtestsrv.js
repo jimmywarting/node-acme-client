@@ -2,8 +2,8 @@
  * Pebble Challenge Test Server integration
  */
 
-const { assert } = require('chai');
-const axios = require('./../src/axios');
+import { assert } from 'chai';
+import axios from './../src/axios.js';
 
 const apiBaseUrl = process.env.ACME_CHALLTESTSRV_URL || null;
 
@@ -31,15 +31,15 @@ async function request(apiPath, data = {}) {
  * State
  */
 
-exports.isEnabled = () => !!apiBaseUrl;
+const isEnabled = () => !!apiBaseUrl;
 
 
 /**
  * DNS
  */
 
-exports.addDnsARecord = async (host, addresses) => request('add-a', { host, addresses });
-exports.setDnsCnameRecord = async (host, target) => request('set-cname', { host, target });
+const addDnsARecord = async (host, addresses) => request('add-a', { host, addresses });
+const setDnsCnameRecord = async (host, target) => request('set-cname', { host, target });
 
 
 /**
@@ -53,9 +53,6 @@ async function addHttp01ChallengeResponse(token, content) {
 async function addDns01ChallengeResponse(host, value) {
     return request('set-txt', { host, value });
 }
-
-exports.addHttp01ChallengeResponse = addHttp01ChallengeResponse;
-exports.addDns01ChallengeResponse = addDns01ChallengeResponse;
 
 
 /**
@@ -84,10 +81,20 @@ async function challengeCreateFn(authz, challenge, keyAuthorization) {
     throw new Error(`Unsupported challenge type ${challenge.type}`);
 }
 
-exports.challengeRemoveFn = async () => true;
-exports.challengeNoopFn = async () => true;
-exports.challengeThrowFn = async () => { throw new Error('oops'); };
+const challengeRemoveFn = async () => true;
+const challengeNoopFn = async () => true;
+const challengeThrowFn = async () => { throw new Error('oops'); };
 
-exports.assertHttpChallengeCreateFn = assertHttpChallengeCreateFn;
-exports.assertDnsChallengeCreateFn = assertDnsChallengeCreateFn;
-exports.challengeCreateFn = challengeCreateFn;
+export {
+    isEnabled,
+    addDnsARecord,
+    setDnsCnameRecord,
+    addHttp01ChallengeResponse,
+    addDns01ChallengeResponse,
+    challengeRemoveFn,
+    challengeNoopFn,
+    challengeThrowFn,
+    assertHttpChallengeCreateFn,
+    assertDnsChallengeCreateFn,
+    challengeCreateFn,
+}

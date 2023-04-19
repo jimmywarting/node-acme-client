@@ -2,7 +2,7 @@
  * ACME API client
  */
 
-const util = require('./util');
+import * as util from './util.js';
 
 
 /**
@@ -247,4 +247,4 @@ class AcmeApi {
 
 
 /* Export API */
-module.exports = AcmeApi;
+export default AcmeApi

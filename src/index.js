@@ -1,15 +1,10 @@
-/**
- * acme-client
- */
+import Client from './client.js';
+import * as crypto from './crypto/index.js';
+import axios from './axios.js';
+import { setLogger } from './logger.js';
 
-exports.Client = require('./client');
-
-
-/**
- * Directory URLs
- */
-
-exports.directory = {
+/** Directory URLs */
+const directory = {
     buypass: {
         staging: 'https://api.test4.buypass.no/acme/directory',
         production: 'https://api.buypass.com/acme/directory'
@@ -23,23 +18,10 @@ exports.directory = {
     }
 };
 
-
-/**
- * Crypto
- */
-
-exports.crypto = require('./crypto/index.js');
-
-
-/**
- * Axios
- */
-
-exports.axios = require('./axios');
-
-
-/**
- * Logger
- */
-
-exports.setLogger = require('./logger').setLogger;
+export {
+    Client,
+    crypto,
+    axios,
+    setLogger,
+    directory
+}

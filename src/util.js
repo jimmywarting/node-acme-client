@@ -2,9 +2,9 @@
  * Utility methods
  */
 
-const dns = require('dns').promises;
-const { readCertificateInfo, splitPemChain } = require('./crypto');
-const { log } = require('./logger');
+import { promises as dns } from 'dns'
+import { readCertificateInfo, splitPemChain } from './crypto/index.js'
+import { log } from './logger.js'
 
 
 /**
@@ -249,7 +249,7 @@ async function getAuthoritativeDnsResolver(recordName) {
  * Export utils
  */
 
-module.exports = {
+export {
     retry,
     parseLinkHeader,
     findCertificateChainForIssuer,

@@ -2,9 +2,9 @@
  * Challenge verification tests
  */
 
-const { assert } = require('chai');
-const cts = require('./challtestsrv.js');
-const verify = require('./../src/verify.js');
+import { assert } from 'chai';
+import * as cts from './challtestsrv.js';
+import * as verify from './../src/verify.js';
 
 const uuid = () => crypto.randomUUID()
 
