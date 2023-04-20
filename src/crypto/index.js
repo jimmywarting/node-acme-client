@@ -1,9 +1,11 @@
-import net from 'net'
-import nodeCrypto from 'crypto'
+import { Buffer } from 'node:buffer'
+import nodeCrypto from 'node:crypto'
 import jsrsasign from 'jsrsasign'
 import { createWorker } from 'await-sync'
 
-const c = new TextEncoder(); const U = Uint8Array; const A = ArrayBuffer
+
+const c = new TextEncoder(); const U = Uint8Array; const A = ArrayBuffer,
+d = new TextDecoder()
 
 /** @param {string} str */
 const toBytes = str => U.from(atob(str), c => c.charCodeAt(0))
@@ -17,26 +19,47 @@ const awaitSync = createWorker()
 const { crypto } = globalThis
 
 /** @param {string | Uint8Array} pem */
-function pemToBuffer (pem) {
+function decodePem (pem) {
   if (pem instanceof Uint8Array) {
     pem = new TextDecoder().decode(pem)
   }
-  return toBytes(pem
-    .split('\n')
-    .filter(line => line[0] !== '-')
-    .join(''))
+
+  const [header, ...lines] = pem.trim().split('\n')
+  lines.pop()
+  const type = header.replaceAll('-', '').replace('BEGIN ', '')
+  const base64 = lines.join('')
+
+  return {
+    type,
+    pem,
+    key: toBytes(base64),
+    key64: base64,
+  }
 }
 
-const createPublicKey = awaitSync(async keyPem => {
-  const publicKey = await crypto.subtle.importKey(
-    'spki',
-    keyBuffer,
-    { name: 'RSA-OAEP', hash: { name: 'SHA-256' } },
-    true, // extractable
-    ['encrypt'] // key usages
-  )
+const forgeObjectFromPem = awaitSync(async input => {
+  let result
+  [ 'PRIVATE KEY', 'RSA PUBLIC KEY', 'PUBLIC KEY' ]
+  if (input.key) {
+    switch (input.type) {
+      case 'PUBLIC KEY': {
+        // result = await crypto.subtle.importKey('spki', input.key, { name: 'ECDSA', namedCurve: 'P-256' }, true, ['verify'])
+        break
+      }
+      case 'PRIVATE KEY': {
+        // TODO
+        break
+      }
+      case 'RSA PUBLIC KEY': {
+        // TODO
+        break
+      }
+      default:
+        console.log(`Unsupported key type: ${input.type}`)
+    }
+  }
 
-  return publicKey
+  return new Uint8Array(2).fill(2)
 })
 
 /**
@@ -46,8 +69,7 @@ const createPublicKey = awaitSync(async keyPem => {
  * @returns {object}
  */
 function getKeyInfo (keyPem) {
-  const keyBuffer = pemToBuffer(keyPem)
-
+  forgeObjectFromPem(decodePem(keyPem))
   const result = {
     isRSA: false,
     isECDSA: false,
@@ -88,18 +110,17 @@ function bufferToPem (buffer, label) {
 /**
  * Generate a private RSA key
  *
- * @param {number} [modulusLength] Size of the keys modulus in bits, default: `2048`
- * @returns {Promise<Buffer>} PEM encoded private RSA key
- *
  * @example Generate private RSA key
  * ```js
- * const privateKey = await acme.crypto.createPrivateRsaKey();
+ * const privateKey = await acme.crypto.createPrivateRsaKey()
  * ```
  *
  * @example Private RSA key with modulus size 4096
  * ```js
- * const privateKey = await acme.crypto.createPrivateRsaKey(4096);
+ * const privateKey = await acme.crypto.createPrivateRsaKey(4096)
  * ```
+ * @param {number} [modulusLength=2048] Size of the keys modulus in bits
+ * @returns {Promise<Buffer>} PEM encoded private RSA key
  */
 async function createPrivateRsaKey (modulusLength = 2048) {
   const algorithm = {
@@ -158,7 +179,7 @@ async function createPrivateEcdsaKey (namedCurve = 'P-256') {
     'pkcs8',
     keys.privateKey
   )
-
+  console.log(privateKey)
   const pemPrivateKey = bufferToPem(privateKey, 'PRIVATE KEY')
 
   return Buffer.from(pemPrivateKey)
@@ -168,7 +189,7 @@ async function createPrivateEcdsaKey (namedCurve = 'P-256') {
  * Get a public key derived from a RSA or ECDSA key
  *
  * @param {buffer|string} keyPem PEM encoded private or public key
- * @returns {buffer} PEM encoded public key
+ * @returns PEM encoded public key
  *
  * @example Get public key
  * ```js
@@ -425,6 +446,24 @@ function createCsrSubject (input) {
   }, [])
 }
 
+// IPv4 Segment
+const v4Seg = '(?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])';
+const v4Str = `(${v4Seg}[.]){3}${v4Seg}`;
+const IPv4Reg = new RegExp(`^${v4Str}$`);
+
+// IPv6 Segment
+const v6Seg = '(?:[0-9a-fA-F]{1,4})';
+const IPv6Reg = new RegExp('^(' +
+  `(?:${v6Seg}:){7}(?:${v6Seg}|:)|` +
+  `(?:${v6Seg}:){6}(?:${v4Str}|:${v6Seg}|:)|` +
+  `(?:${v6Seg}:){5}(?::${v4Str}|(:${v6Seg}){1,2}|:)|` +
+  `(?:${v6Seg}:){4}(?:(:${v6Seg}){0,1}:${v4Str}|(:${v6Seg}){1,3}|:)|` +
+  `(?:${v6Seg}:){3}(?:(:${v6Seg}){0,2}:${v4Str}|(:${v6Seg}){1,4}|:)|` +
+  `(?:${v6Seg}:){2}(?:(:${v6Seg}){0,3}:${v4Str}|(:${v6Seg}){1,5}|:)|` +
+  `(?:${v6Seg}:){1}(?:(:${v6Seg}){0,4}:${v4Str}|(:${v6Seg}){1,6}|:)|` +
+  `(?::((?::${v6Seg}){0,5}:${v4Str}|(?::${v6Seg}){1,7}|:))` +
+')(%[0-9a-zA-Z-.:]{1,})?$');
+
 /**
  * Create array of alt names for Certificate Signing Requests
  *
@@ -437,7 +476,7 @@ function createCsrSubject (input) {
 
 function formatCsrAltNames (altNames) {
   return altNames.map((value) => {
-    const key = net.isIP(value) ? 'ip' : 'dns'
+    const key = IPv4Reg.test(value) || IPv6Reg.test(value) ? 'ip' : 'dns'
     return { [key]: value }
   })
 }
@@ -496,7 +535,7 @@ function formatCsrAltNames (altNames) {
  * }, certificateKey);
  */
 
-const createCsr = async (data, keyPem = null) => {
+const createCsr = async (data, keyPem) => {
   if (!keyPem) {
     keyPem = await createPrivateRsaKey(data.keySize)
   } else if (!Buffer.isBuffer(keyPem)) {
