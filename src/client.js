@@ -4,15 +4,14 @@
  * @namespace Client
  */
 
-import { createHash } from 'crypto';
-import { getPemBodyAsB64u } from './crypto/index.js';
-import { log } from './logger.js';
-import HttpClient from './http.js';
-import AcmeApi from './api.js';
-import verify from './verify.js';
-import * as util from './util.js';
-import auto from './auto.js';
-
+import { createHash } from 'crypto'
+import { getPemBodyAsB64u } from './crypto/index.js'
+import { log } from './logger.js'
+import HttpClient from './http.js'
+import AcmeApi from './api.js'
+import verify from './verify.js'
+import * as util from './util.js'
+import auto from './auto.js'
 
 /**
  * ACME states
@@ -20,10 +19,9 @@ import auto from './auto.js';
  * @private
  */
 
-const validStates = ['ready', 'valid'];
-const pendingStates = ['pending', 'processing'];
-const invalidStates = ['invalid'];
-
+const validStates = ['ready', 'valid']
+const pendingStates = ['pending', 'processing']
+const invalidStates = ['invalid']
 
 /**
  * Default options
@@ -32,15 +30,14 @@ const invalidStates = ['invalid'];
  */
 
 const defaultOpts = {
-    directoryUrl: undefined,
-    accountKey: undefined,
-    accountUrl: null,
-    externalAccountBinding: {},
-    backoffAttempts: 10,
-    backoffMin: 5000,
-    backoffMax: 30000
-};
-
+  directoryUrl: undefined,
+  accountKey: undefined,
+  accountUrl: null,
+  externalAccountBinding: {},
+  backoffAttempts: 10,
+  backoffMin: 5000,
+  backoffMax: 30000
+}
 
 /**
  * AcmeClient
@@ -91,25 +88,24 @@ const defaultOpts = {
  */
 
 class AcmeClient {
-    constructor(opts) {
-        if (!Buffer.isBuffer(opts.accountKey)) {
-            opts.accountKey = Buffer.from(opts.accountKey);
-        }
-
-        this.opts = Object.assign({}, defaultOpts, opts);
-
-        this.backoffOpts = {
-            attempts: this.opts.backoffAttempts,
-            min: this.opts.backoffMin,
-            max: this.opts.backoffMax
-        };
-
-        this.http = new HttpClient(this.opts.directoryUrl, this.opts.accountKey, this.opts.externalAccountBinding);
-        this.api = new AcmeApi(this.http, this.opts.accountUrl);
+  constructor (opts) {
+    if (!Buffer.isBuffer(opts.accountKey)) {
+      opts.accountKey = Buffer.from(opts.accountKey)
     }
 
+    this.opts = Object.assign({}, defaultOpts, opts)
 
-    /**
+    this.backoffOpts = {
+      attempts: this.opts.backoffAttempts,
+      min: this.opts.backoffMin,
+      max: this.opts.backoffMax
+    }
+
+    this.http = new HttpClient(this.opts.directoryUrl, this.opts.accountKey, this.opts.externalAccountBinding)
+    this.api = new AcmeApi(this.http, this.opts.accountUrl)
+  }
+
+  /**
      * Get Terms of Service URL if available
      *
      * @returns {Promise<string|null>} ToS URL
@@ -124,12 +120,11 @@ class AcmeClient {
      * ```
      */
 
-    getTermsOfServiceUrl() {
-        return this.api.getTermsOfServiceUrl();
-    }
+  getTermsOfServiceUrl () {
+    return this.api.getTermsOfServiceUrl()
+  }
 
-
-    /**
+  /**
      * Get current account URL
      *
      * @returns {string} Account URL
@@ -146,12 +141,11 @@ class AcmeClient {
      * ```
      */
 
-    getAccountUrl() {
-        return this.api.getAccountUrl();
-    }
+  getAccountUrl () {
+    return this.api.getAccountUrl()
+  }
 
-
-    /**
+  /**
      * Create a new account
      *
      * https://tools.ietf.org/html/rfc8555#section-7.3
@@ -175,29 +169,27 @@ class AcmeClient {
      * ```
      */
 
-    async createAccount(data = {}) {
-        try {
-            this.getAccountUrl();
+  async createAccount (data = {}) {
+    try {
+      this.getAccountUrl()
 
-            /* Account URL exists */
-            log('Account URL exists, returning updateAccount()');
-            return this.updateAccount(data);
-        }
-        catch (e) {
-            const resp = await this.api.createAccount(data);
+      /* Account URL exists */
+      log('Account URL exists, returning updateAccount()')
+      return this.updateAccount(data)
+    } catch (e) {
+      const resp = await this.api.createAccount(data)
 
-            /* HTTP 200: Account exists */
-            if (resp.status === 200) {
-                log('Account already exists (HTTP 200), returning updateAccount()');
-                return this.updateAccount(data);
-            }
+      /* HTTP 200: Account exists */
+      if (resp.status === 200) {
+        log('Account already exists (HTTP 200), returning updateAccount()')
+        return this.updateAccount(data)
+      }
 
-            return resp.data;
-        }
+      return resp.data
     }
+  }
 
-
-    /**
+  /**
      * Update existing account
      *
      * https://tools.ietf.org/html/rfc8555#section-7.3.2
@@ -213,31 +205,29 @@ class AcmeClient {
      * ```
      */
 
-    async updateAccount(data = {}) {
-        try {
-            this.api.getAccountUrl();
-        }
-        catch (e) {
-            log('No account URL found, returning createAccount()');
-            return this.createAccount(data);
-        }
-
-        /* Remove data only applicable to createAccount() */
-        if ('onlyReturnExisting' in data) {
-            delete data.onlyReturnExisting;
-        }
-
-        /* POST-as-GET */
-        if (Object.keys(data).length === 0) {
-            data = null;
-        }
-
-        const resp = await this.api.updateAccount(data);
-        return resp.data;
+  async updateAccount (data = {}) {
+    try {
+      this.api.getAccountUrl()
+    } catch (e) {
+      log('No account URL found, returning createAccount()')
+      return this.createAccount(data)
     }
 
+    /* Remove data only applicable to createAccount() */
+    if ('onlyReturnExisting' in data) {
+      delete data.onlyReturnExisting
+    }
 
-    /**
+    /* POST-as-GET */
+    if (Object.keys(data).length === 0) {
+      data = null
+    }
+
+    const resp = await this.api.updateAccount(data)
+    return resp.data
+  }
+
+  /**
      * Update account private key
      *
      * https://tools.ietf.org/html/rfc8555#section-7.3.5
@@ -253,37 +243,36 @@ class AcmeClient {
      * ```
      */
 
-    async updateAccountKey(newAccountKey, data = {}) {
-        if (!Buffer.isBuffer(newAccountKey)) {
-            newAccountKey = Buffer.from(newAccountKey);
-        }
-
-        const accountUrl = this.api.getAccountUrl();
-
-        /* Create new HTTP and API clients using new key */
-        const newHttpClient = new HttpClient(this.opts.directoryUrl, newAccountKey);
-        const newApiClient = new AcmeApi(newHttpClient, accountUrl);
-
-        /* Get old JWK */
-        data.account = accountUrl;
-        data.oldKey = this.http.getJwk();
-
-        /* Get signed request body from new client */
-        const url = await newHttpClient.getResourceUrl('keyChange');
-        const body = newHttpClient.createSignedBody(url, data);
-
-        /* Change key using old client */
-        const resp = await this.api.updateAccountKey(body);
-
-        /* Replace existing HTTP and API client */
-        this.http = newHttpClient;
-        this.api = newApiClient;
-
-        return resp.data;
+  async updateAccountKey (newAccountKey, data = {}) {
+    if (!Buffer.isBuffer(newAccountKey)) {
+      newAccountKey = Buffer.from(newAccountKey)
     }
 
+    const accountUrl = this.api.getAccountUrl()
 
-    /**
+    /* Create new HTTP and API clients using new key */
+    const newHttpClient = new HttpClient(this.opts.directoryUrl, newAccountKey)
+    const newApiClient = new AcmeApi(newHttpClient, accountUrl)
+
+    /* Get old JWK */
+    data.account = accountUrl
+    data.oldKey = this.http.getJwk()
+
+    /* Get signed request body from new client */
+    const url = await newHttpClient.getResourceUrl('keyChange')
+    const body = newHttpClient.createSignedBody(url, data)
+
+    /* Change key using old client */
+    const resp = await this.api.updateAccountKey(body)
+
+    /* Replace existing HTTP and API client */
+    this.http = newHttpClient
+    this.api = newApiClient
+
+    return resp.data
+  }
+
+  /**
      * Create a new order
      *
      * https://tools.ietf.org/html/rfc8555#section-7.4
@@ -302,20 +291,19 @@ class AcmeClient {
      * ```
      */
 
-    async createOrder(data) {
-        const resp = await this.api.createOrder(data);
+  async createOrder (data) {
+    const resp = await this.api.createOrder(data)
 
-        if (!resp.headers.location) {
-            throw new Error('Creating a new order did not return an order link');
-        }
-
-        /* Add URL to response */
-        resp.data.url = resp.headers.location;
-        return resp.data;
+    if (!resp.headers.location) {
+      throw new Error('Creating a new order did not return an order link')
     }
 
+    /* Add URL to response */
+    resp.data.url = resp.headers.location
+    return resp.data
+  }
 
-    /**
+  /**
      * Refresh order object from CA
      *
      * https://tools.ietf.org/html/rfc8555#section-7.4
@@ -330,19 +318,19 @@ class AcmeClient {
      * ```
      */
 
-    async getOrder(order) {
-        if (!order.url) {
-            throw new Error('Unable to get order, URL not found');
-        }
-
-        const resp = await this.api.getOrder(order.url);
-
-        /* Add URL to response */
-        resp.data.url = order.url;
-        return resp.data;
+  async getOrder (order) {
+    if (!order.url) {
+      throw new Error('Unable to get order, URL not found')
     }
 
-    /**
+    const resp = await this.api.getOrder(order.url)
+
+    /* Add URL to response */
+    resp.data.url = order.url
+    return resp.data
+  }
+
+  /**
      * Finalize order
      *
      * https://tools.ietf.org/html/rfc8555#section-7.4
@@ -359,25 +347,24 @@ class AcmeClient {
      * ```
      */
 
-    async finalizeOrder(order, csr) {
-        if (!order.finalize) {
-            throw new Error('Unable to finalize order, URL not found');
-        }
-
-        if (!Buffer.isBuffer(csr)) {
-            csr = Buffer.from(csr);
-        }
-
-        const data = { csr: getPemBodyAsB64u(csr) };
-        const resp = await this.api.finalizeOrder(order.finalize, data);
-
-        /* Add URL to response */
-        resp.data.url = order.url;
-        return resp.data;
+  async finalizeOrder (order, csr) {
+    if (!order.finalize) {
+      throw new Error('Unable to finalize order, URL not found')
     }
 
+    if (!Buffer.isBuffer(csr)) {
+      csr = Buffer.from(csr)
+    }
 
-    /**
+    const data = { csr: getPemBodyAsB64u(csr) }
+    const resp = await this.api.finalizeOrder(order.finalize, data)
+
+    /* Add URL to response */
+    resp.data.url = order.url
+    return resp.data
+  }
+
+  /**
      * Get identifier authorizations from order
      *
      * https://tools.ietf.org/html/rfc8555#section-7.5
@@ -396,18 +383,17 @@ class AcmeClient {
      * ```
      */
 
-    async getAuthorizations(order) {
-        return Promise.all((order.authorizations || []).map(async (url) => {
-            const resp = await this.api.getAuthorization(url);
+  async getAuthorizations (order) {
+    return Promise.all((order.authorizations || []).map(async (url) => {
+      const resp = await this.api.getAuthorization(url)
 
-            /* Add URL to response */
-            resp.data.url = url;
-            return resp.data;
-        }));
-    }
+      /* Add URL to response */
+      resp.data.url = url
+      return resp.data
+    }))
+  }
 
-
-    /**
+  /**
      * Deactivate identifier authorization
      *
      * https://tools.ietf.org/html/rfc8555#section-7.5.2
@@ -422,24 +408,23 @@ class AcmeClient {
      * ```
      */
 
-    async deactivateAuthorization(authz) {
-        if (!authz.url) {
-            throw new Error('Unable to deactivate identifier authorization, URL not found');
-        }
-
-        const data = {
-            status: 'deactivated'
-        };
-
-        const resp = await this.api.updateAuthorization(authz.url, data);
-
-        /* Add URL to response */
-        resp.data.url = authz.url;
-        return resp.data;
+  async deactivateAuthorization (authz) {
+    if (!authz.url) {
+      throw new Error('Unable to deactivate identifier authorization, URL not found')
     }
 
+    const data = {
+      status: 'deactivated'
+    }
 
-    /**
+    const resp = await this.api.updateAuthorization(authz.url, data)
+
+    /* Add URL to response */
+    resp.data.url = authz.url
+    return resp.data
+  }
+
+  /**
      * Get key authorization for ACME challenge
      *
      * https://tools.ietf.org/html/rfc8555#section-8.1
@@ -456,35 +441,34 @@ class AcmeClient {
      * ```
      */
 
-    async getChallengeKeyAuthorization(challenge) {
-        const jwk = this.http.getJwk();
-        const keysum = createHash('sha256').update(JSON.stringify(jwk));
-        const thumbprint = keysum.digest('base64url');
-        const result = `${challenge.token}.${thumbprint}`;
+  async getChallengeKeyAuthorization (challenge) {
+    const jwk = this.http.getJwk()
+    const keysum = createHash('sha256').update(JSON.stringify(jwk))
+    const thumbprint = keysum.digest('base64url')
+    const result = `${challenge.token}.${thumbprint}`
 
-        /**
+    /**
          * https://tools.ietf.org/html/rfc8555#section-8.3
          */
 
-        if (challenge.type === 'http-01') {
-            return result;
-        }
+    if (challenge.type === 'http-01') {
+      return result
+    }
 
-        /**
+    /**
          * https://tools.ietf.org/html/rfc8555#section-8.4
          * https://tools.ietf.org/html/draft-ietf-acme-tls-alpn-01
          */
 
-        if ((challenge.type === 'dns-01') || (challenge.type === 'tls-alpn-01')) {
-            const shasum = createHash('sha256').update(result);
-            return shasum.digest('base64url');
-        }
-
-        throw new Error(`Unable to produce key authorization, unknown challenge type: ${challenge.type}`);
+    if ((challenge.type === 'dns-01') || (challenge.type === 'tls-alpn-01')) {
+      const shasum = createHash('sha256').update(result)
+      return shasum.digest('base64url')
     }
 
+    throw new Error(`Unable to produce key authorization, unknown challenge type: ${challenge.type}`)
+  }
 
-    /**
+  /**
      * Verify that ACME challenge is satisfied
      *
      * @param {object} authz Identifier authorization
@@ -499,27 +483,26 @@ class AcmeClient {
      * ```
      */
 
-    async verifyChallenge(authz, challenge) {
-        if (!authz.url || !challenge.url) {
-            throw new Error('Unable to verify ACME challenge, URL not found');
-        }
-
-        if (typeof verify[challenge.type] === 'undefined') {
-            throw new Error(`Unable to verify ACME challenge, unknown type: ${challenge.type}`);
-        }
-
-        const keyAuthorization = await this.getChallengeKeyAuthorization(challenge);
-
-        const verifyFn = async () => {
-            await verify[challenge.type](authz, challenge, keyAuthorization);
-        };
-
-        log('Waiting for ACME challenge verification', this.backoffOpts);
-        return util.retry(verifyFn, this.backoffOpts);
+  async verifyChallenge (authz, challenge) {
+    if (!authz.url || !challenge.url) {
+      throw new Error('Unable to verify ACME challenge, URL not found')
     }
 
+    if (typeof verify[challenge.type] === 'undefined') {
+      throw new Error(`Unable to verify ACME challenge, unknown type: ${challenge.type}`)
+    }
 
-    /**
+    const keyAuthorization = await this.getChallengeKeyAuthorization(challenge)
+
+    const verifyFn = async () => {
+      await verify[challenge.type](authz, challenge, keyAuthorization)
+    }
+
+    log('Waiting for ACME challenge verification', this.backoffOpts)
+    return util.retry(verifyFn, this.backoffOpts)
+  }
+
+  /**
      * Notify CA that challenge has been completed
      *
      * https://tools.ietf.org/html/rfc8555#section-7.5.1
@@ -534,13 +517,12 @@ class AcmeClient {
      * ```
      */
 
-    async completeChallenge(challenge) {
-        const resp = await this.api.completeChallenge(challenge.url, {});
-        return resp.data;
-    }
+  async completeChallenge (challenge) {
+    const resp = await this.api.completeChallenge(challenge.url, {})
+    return resp.data
+  }
 
-
-    /**
+  /**
      * Wait for ACME provider to verify status on a order, authorization or challenge
      *
      * https://tools.ietf.org/html/rfc8555#section-7.5.1
@@ -567,37 +549,34 @@ class AcmeClient {
      * ```
      */
 
-    async waitForValidStatus(item) {
-        if (!item.url) {
-            throw new Error('Unable to verify status of item, URL not found');
-        }
-
-        const verifyFn = async (abort) => {
-            const resp = await this.api.apiRequest(item.url, null, [200]);
-
-            /* Verify status */
-            log(`Item has status: ${resp.data.status}`);
-
-            if (invalidStates.includes(resp.data.status)) {
-                abort();
-                throw new Error(util.formatResponseError(resp));
-            }
-            else if (pendingStates.includes(resp.data.status)) {
-                throw new Error('Operation is pending or processing');
-            }
-            else if (validStates.includes(resp.data.status)) {
-                return resp.data;
-            }
-
-            throw new Error(`Unexpected item status: ${resp.data.status}`);
-        };
-
-        log(`Waiting for valid status from: ${item.url}`, this.backoffOpts);
-        return util.retry(verifyFn, this.backoffOpts);
+  async waitForValidStatus (item) {
+    if (!item.url) {
+      throw new Error('Unable to verify status of item, URL not found')
     }
 
+    const verifyFn = async (abort) => {
+      const resp = await this.api.apiRequest(item.url, null, [200])
 
-    /**
+      /* Verify status */
+      log(`Item has status: ${resp.data.status}`)
+
+      if (invalidStates.includes(resp.data.status)) {
+        abort()
+        throw new Error(util.formatResponseError(resp))
+      } else if (pendingStates.includes(resp.data.status)) {
+        throw new Error('Operation is pending or processing')
+      } else if (validStates.includes(resp.data.status)) {
+        return resp.data
+      }
+
+      throw new Error(`Unexpected item status: ${resp.data.status}`)
+    }
+
+    log(`Waiting for valid status from: ${item.url}`, this.backoffOpts)
+    return util.retry(verifyFn, this.backoffOpts)
+  }
+
+  /**
      * Get certificate from ACME order
      *
      * https://tools.ietf.org/html/rfc8555#section-7.4.2
@@ -619,32 +598,31 @@ class AcmeClient {
      * ```
      */
 
-    async getCertificate(order, preferredChain = null) {
-        if (!validStates.includes(order.status)) {
-            order = await this.waitForValidStatus(order);
-        }
-
-        if (!order.certificate) {
-            throw new Error('Unable to download certificate, URL not found');
-        }
-
-        const resp = await this.api.apiRequest(order.certificate, null, [200]);
-
-        /* Handle alternate certificate chains */
-        if (preferredChain && resp.headers.link) {
-            const alternateLinks = util.parseLinkHeader(resp.headers.link);
-            const alternates = await Promise.all(alternateLinks.map(async (link) => this.api.apiRequest(link, null, [200])));
-            const certificates = [resp].concat(alternates).map((c) => c.data);
-
-            return util.findCertificateChainForIssuer(certificates, preferredChain);
-        }
-
-        /* Return default certificate chain */
-        return resp.data;
+  async getCertificate (order, preferredChain = null) {
+    if (!validStates.includes(order.status)) {
+      order = await this.waitForValidStatus(order)
     }
 
+    if (!order.certificate) {
+      throw new Error('Unable to download certificate, URL not found')
+    }
 
-    /**
+    const resp = await this.api.apiRequest(order.certificate, null, [200])
+
+    /* Handle alternate certificate chains */
+    if (preferredChain && resp.headers.link) {
+      const alternateLinks = util.parseLinkHeader(resp.headers.link)
+      const alternates = await Promise.all(alternateLinks.map(async (link) => this.api.apiRequest(link, null, [200])))
+      const certificates = [resp].concat(alternates).map((c) => c.data)
+
+      return util.findCertificateChainForIssuer(certificates, preferredChain)
+    }
+
+    /* Return default certificate chain */
+    return resp.data
+  }
+
+  /**
      * Revoke certificate
      *
      * https://tools.ietf.org/html/rfc8555#section-7.6
@@ -668,14 +646,13 @@ class AcmeClient {
      * ```
      */
 
-    async revokeCertificate(cert, data = {}) {
-        data.certificate = getPemBodyAsB64u(cert);
-        const resp = await this.api.revokeCert(data);
-        return resp.data;
-    }
+  async revokeCertificate (cert, data = {}) {
+    data.certificate = getPemBodyAsB64u(cert)
+    const resp = await this.api.revokeCert(data)
+    return resp.data
+  }
 
-
-    /**
+  /**
      * Auto mode
      *
      * @param {object} opts
@@ -725,11 +702,10 @@ class AcmeClient {
      * ```
      */
 
-    auto(opts) {
-        return auto(this, opts);
-    }
+  auto (opts) {
+    return auto(this, opts)
+  }
 }
 
-
 /* Export client */
-export default AcmeClient;
+export default AcmeClient

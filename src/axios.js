@@ -2,27 +2,25 @@
  * Axios instance
  */
 
-import axios from 'axios';
-import adapter from 'axios/lib/adapters/http.js';
+import axios from 'axios'
+import adapter from 'axios/lib/adapters/http.js'
 
 const pkg = { name: 'acme-client', version: '4.0.0' }
-
 
 /**
  * Instance
  */
 
-const instance = axios.create();
+const instance = axios.create()
 
 /* Default User-Agent */
-instance.defaults.headers.common['User-Agent'] = `node-${pkg.name}/${pkg.version}`;
+instance.defaults.headers.common['User-Agent'] = `node-${pkg.name}/${pkg.version}`
 
 /* Default ACME settings */
 instance.defaults.acmeSettings = {
-    httpChallengePort: 80,
-    bypassCustomDnsResolver: false
-};
-
+  httpChallengePort: 80,
+  bypassCustomDnsResolver: false
+}
 
 /**
  * Explicitly set Node as default HTTP adapter
@@ -31,11 +29,10 @@ instance.defaults.acmeSettings = {
  * https://stackoverflow.com/questions/42677387
  */
 
-instance.defaults.adapter = adapter;
-
+instance.defaults.adapter = adapter
 
 /**
  * Export instance
  */
 
-export default instance;
+export default instance

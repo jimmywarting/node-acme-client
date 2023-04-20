@@ -6,7 +6,6 @@ import { promises as dns } from 'dns'
 import { readCertificateInfo, splitPemChain } from './crypto/index.js'
 import { log } from './logger.js'
 
-
 /**
  * Exponential backoff
  *
@@ -19,26 +18,24 @@ import { log } from './logger.js'
  */
 
 class Backoff {
-    constructor({ min = 100, max = 10000 } = {}) {
-        this.min = min;
-        this.max = max;
-        this.attempts = 0;
-    }
+  constructor ({ min = 100, max = 10000 } = {}) {
+    this.min = min
+    this.max = max
+    this.attempts = 0
+  }
 
-
-    /**
+  /**
      * Get backoff duration
      *
      * @returns {number} Backoff duration in ms
      */
 
-    duration() {
-        const ms = this.min * (2 ** this.attempts);
-        this.attempts += 1;
-        return Math.min(ms, this.max);
-    }
+  duration () {
+    const ms = this.min * (2 ** this.attempts)
+    this.attempts += 1
+    return Math.min(ms, this.max)
+  }
 }
-
 
 /**
  * Retry promise
@@ -49,26 +46,24 @@ class Backoff {
  * @returns {Promise}
  */
 
-async function retryPromise(fn, attempts, backoff) {
-    let aborted = false;
+async function retryPromise (fn, attempts, backoff) {
+  let aborted = false
 
-    try {
-        const data = await fn(() => { aborted = true; });
-        return data;
+  try {
+    const data = await fn(() => { aborted = true })
+    return data
+  } catch (e) {
+    if (aborted || ((backoff.attempts + 1) >= attempts)) {
+      throw e
     }
-    catch (e) {
-        if (aborted || ((backoff.attempts + 1) >= attempts)) {
-            throw e;
-        }
 
-        const duration = backoff.duration();
-        log(`Promise rejected attempt #${backoff.attempts}, retrying in ${duration}ms: ${e.message}`);
+    const duration = backoff.duration()
+    log(`Promise rejected attempt #${backoff.attempts}, retrying in ${duration}ms: ${e.message}`)
 
-        await new Promise((resolve) => { setTimeout(resolve, duration); });
-        return retryPromise(fn, attempts, backoff);
-    }
+    await new Promise((resolve) => { setTimeout(resolve, duration) })
+    return retryPromise(fn, attempts, backoff)
+  }
 }
-
 
 /**
  * Retry promise
@@ -81,11 +76,10 @@ async function retryPromise(fn, attempts, backoff) {
  * @returns {Promise}
  */
 
-function retry(fn, { attempts = 5, min = 5000, max = 30000 } = {}) {
-    const backoff = new Backoff({ min, max });
-    return retryPromise(fn, attempts, backoff);
+function retry (fn, { attempts = 5, min = 5000, max = 30000 } = {}) {
+  const backoff = new Backoff({ min, max })
+  return retryPromise(fn, attempts, backoff)
 }
-
 
 /**
  * Parse URLs from link header
@@ -95,17 +89,16 @@ function retry(fn, { attempts = 5, min = 5000, max = 30000 } = {}) {
  * @returns {array} Array of URLs
  */
 
-function parseLinkHeader(header, rel = 'alternate') {
-    const relRe = new RegExp(`\\s*rel\\s*=\\s*"?${rel}"?`, 'i');
+function parseLinkHeader (header, rel = 'alternate') {
+  const relRe = new RegExp(`\\s*rel\\s*=\\s*"?${rel}"?`, 'i')
 
-    const results = (header || '').split(/,\s*</).map((link) => {
-        const [, linkUrl, linkParts] = link.match(/<?([^>]*)>;(.*)/) || [];
-        return (linkUrl && linkParts && linkParts.match(relRe)) ? linkUrl : null;
-    });
+  const results = (header || '').split(/,\s*</).map((link) => {
+    const [, linkUrl, linkParts] = link.match(/<?([^>]*)>;(.*)/) || []
+    return (linkUrl && linkParts && linkParts.match(relRe)) ? linkUrl : null
+  })
 
-    return results.filter((r) => r);
+  return results.filter((r) => r)
 }
-
 
 /**
  * Find certificate chain with preferred issuer common name
@@ -117,45 +110,43 @@ function parseLinkHeader(header, rel = 'alternate') {
  * @returns {string} PEM encoded certificate chain
  */
 
-function findCertificateChainForIssuer(chains, issuer) {
-    log(`Attempting to find match for issuer="${issuer}" in ${chains.length} certificate chains`);
-    let bestMatch = null;
-    let bestDistance = null;
+function findCertificateChainForIssuer (chains, issuer) {
+  log(`Attempting to find match for issuer="${issuer}" in ${chains.length} certificate chains`)
+  let bestMatch = null
+  let bestDistance = null
 
-    chains.forEach((chain) => {
-        /* Look up all issuers */
-        const certs = splitPemChain(chain);
-        const infoCollection = certs.map((c) => readCertificateInfo(c));
-        const issuerCollection = infoCollection.map((i) => i.issuer.commonName);
+  chains.forEach((chain) => {
+    /* Look up all issuers */
+    const certs = splitPemChain(chain)
+    const infoCollection = certs.map((c) => readCertificateInfo(c))
+    const issuerCollection = infoCollection.map((i) => i.issuer.commonName)
 
-        /* Found issuer match, get distance from root - lower is better */
-        if (issuerCollection.includes(issuer)) {
-            const distance = (issuerCollection.length - issuerCollection.indexOf(issuer));
-            log(`Found matching chain for preferred issuer="${issuer}" distance=${distance} issuers=${JSON.stringify(issuerCollection)}`);
+    /* Found issuer match, get distance from root - lower is better */
+    if (issuerCollection.includes(issuer)) {
+      const distance = (issuerCollection.length - issuerCollection.indexOf(issuer))
+      log(`Found matching chain for preferred issuer="${issuer}" distance=${distance} issuers=${JSON.stringify(issuerCollection)}`)
 
-            /* Chain wins, use it */
-            if (!bestDistance || (distance < bestDistance)) {
-                log(`Issuer is closer to root than previous match, using it (${distance} < ${bestDistance || 'undefined'})`);
-                bestMatch = chain;
-                bestDistance = distance;
-            }
-        }
-        else {
-            /* No match */
-            log(`Unable to match certificate for preferred issuer="${issuer}", issuers=${JSON.stringify(issuerCollection)}`);
-        }
-    });
-
-    /* Return found match */
-    if (bestMatch) {
-        return bestMatch;
+      /* Chain wins, use it */
+      if (!bestDistance || (distance < bestDistance)) {
+        log(`Issuer is closer to root than previous match, using it (${distance} < ${bestDistance || 'undefined'})`)
+        bestMatch = chain
+        bestDistance = distance
+      }
+    } else {
+      /* No match */
+      log(`Unable to match certificate for preferred issuer="${issuer}", issuers=${JSON.stringify(issuerCollection)}`)
     }
+  })
 
-    /* No chains matched, return default */
-    log(`Found no match in ${chains.length} certificate chains for preferred issuer="${issuer}", returning default certificate chain`);
-    return chains[0];
+  /* Return found match */
+  if (bestMatch) {
+    return bestMatch
+  }
+
+  /* No chains matched, return default */
+  log(`Found no match in ${chains.length} certificate chains for preferred issuer="${issuer}", returning default certificate chain`)
+  return chains[0]
 }
-
 
 /**
  * Find and format error in response object
@@ -164,19 +155,17 @@ function findCertificateChainForIssuer(chains, issuer) {
  * @returns {string} Error message
  */
 
-function formatResponseError(resp) {
-    let result;
+function formatResponseError (resp) {
+  let result
 
-    if (resp.data.error) {
-        result = resp.data.error.detail || resp.data.error;
-    }
-    else {
-        result = resp.data.detail || JSON.stringify(resp.data);
-    }
+  if (resp.data.error) {
+    result = resp.data.error.detail || resp.data.error
+  } else {
+    result = resp.data.detail || JSON.stringify(resp.data)
+  }
 
-    return result.replace(/\n/g, '');
+  return result.replace(/\n/g, '')
 }
-
 
 /**
  * Resolve root domain name by looking for SOA record
@@ -185,24 +174,22 @@ function formatResponseError(resp) {
  * @returns {Promise<string>} Root domain name
  */
 
-async function resolveDomainBySoaRecord(recordName) {
-    try {
-        await dns.resolveSoa(recordName);
-        log(`Found SOA record, considering domain to be: ${recordName}`);
-        return recordName;
-    }
-    catch (e) {
-        log(`Unable to locate SOA record for name: ${recordName}`);
-        const parentRecordName = recordName.split('.').slice(1).join('.');
+async function resolveDomainBySoaRecord (recordName) {
+  try {
+    await dns.resolveSoa(recordName)
+    log(`Found SOA record, considering domain to be: ${recordName}`)
+    return recordName
+  } catch (e) {
+    log(`Unable to locate SOA record for name: ${recordName}`)
+    const parentRecordName = recordName.split('.').slice(1).join('.')
 
-        if (!parentRecordName.includes('.')) {
-            throw new Error('Unable to resolve domain by SOA record');
-        }
-
-        return resolveDomainBySoaRecord(parentRecordName);
+    if (!parentRecordName.includes('.')) {
+      throw new Error('Unable to resolve domain by SOA record')
     }
+
+    return resolveDomainBySoaRecord(parentRecordName)
+  }
 }
-
 
 /**
  * Get DNS resolver using domains authoritative NS records
@@ -211,48 +198,46 @@ async function resolveDomainBySoaRecord(recordName) {
  * @returns {Promise<dns.Resolver>} DNS resolver
  */
 
-async function getAuthoritativeDnsResolver(recordName) {
-    log(`Locating authoritative NS records for name: ${recordName}`);
-    const resolver = new dns.Resolver();
+async function getAuthoritativeDnsResolver (recordName) {
+  log(`Locating authoritative NS records for name: ${recordName}`)
+  const resolver = new dns.Resolver()
 
-    try {
-        /* Resolve root domain by SOA */
-        const domain = await resolveDomainBySoaRecord(recordName);
+  try {
+    /* Resolve root domain by SOA */
+    const domain = await resolveDomainBySoaRecord(recordName)
 
-        /* Resolve authoritative NS addresses */
-        log(`Looking up authoritative NS records for domain: ${domain}`);
-        const nsRecords = await dns.resolveNs(domain);
-        const nsAddrArray = await Promise.all(nsRecords.map(async (r) => dns.resolve4(r)));
-        const nsAddresses = [].concat(...nsAddrArray).filter((a) => a);
+    /* Resolve authoritative NS addresses */
+    log(`Looking up authoritative NS records for domain: ${domain}`)
+    const nsRecords = await dns.resolveNs(domain)
+    const nsAddrArray = await Promise.all(nsRecords.map(async (r) => dns.resolve4(r)))
+    const nsAddresses = [].concat(...nsAddrArray).filter((a) => a)
 
-        if (!nsAddresses.length) {
-            throw new Error(`Unable to locate any valid authoritative NS addresses for domain: ${domain}`);
-        }
-
-        /* Authoritative NS success */
-        log(`Found ${nsAddresses.length} authoritative NS addresses for domain: ${domain}`);
-        resolver.setServers(nsAddresses);
-    }
-    catch (e) {
-        log(`Authoritative NS lookup error: ${e.message}`);
+    if (!nsAddresses.length) {
+      throw new Error(`Unable to locate any valid authoritative NS addresses for domain: ${domain}`)
     }
 
-    /* Return resolver */
-    const addresses = resolver.getServers();
-    log(`DNS resolver addresses: ${addresses.join(', ')}`);
+    /* Authoritative NS success */
+    log(`Found ${nsAddresses.length} authoritative NS addresses for domain: ${domain}`)
+    resolver.setServers(nsAddresses)
+  } catch (e) {
+    log(`Authoritative NS lookup error: ${e.message}`)
+  }
 
-    return resolver;
+  /* Return resolver */
+  const addresses = resolver.getServers()
+  log(`DNS resolver addresses: ${addresses.join(', ')}`)
+
+  return resolver
 }
-
 
 /**
  * Export utils
  */
 
 export {
-    retry,
-    parseLinkHeader,
-    findCertificateChainForIssuer,
-    formatResponseError,
-    getAuthoritativeDnsResolver
-};
+  retry,
+  parseLinkHeader,
+  findCertificateChainForIssuer,
+  formatResponseError,
+  getAuthoritativeDnsResolver
+}

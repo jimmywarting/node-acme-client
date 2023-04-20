@@ -1,11 +1,11 @@
-let logger = () => {};
+let logger = () => {}
 
 /**
  * Set logger function
  *
  * @param {() => void} fn Logger function
  */
-export const setLogger = (fn) =>  logger = fn
+export const setLogger = (fn) => logger = fn
 
 /**
  * Log message
