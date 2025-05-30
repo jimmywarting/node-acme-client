@@ -4,9 +4,10 @@
  * @namespace crypto
  */
 
-const net = require('net');
-const { promisify } = require('util');
-const crypto = require('crypto');
+const { Buffer } = require('node:buffer');
+const net = require('node:net');
+const { promisify } = require('node:util');
+const crypto = require('node:crypto');
 const jsrsasign = require('jsrsasign');
 
 const generateKeyPair = promisify(crypto.generateKeyPair);

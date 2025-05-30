@@ -2,8 +2,9 @@
  * Pebble Challenge Test Server integration
  */
 
+const process = require('node:process');
 const { assert } = require('chai');
-const axios = require('./../src/axios');
+const axios = require('./../src/axios.js');
 
 const apiBaseUrl = process.env.ACME_CHALLTESTSRV_URL || null;
 

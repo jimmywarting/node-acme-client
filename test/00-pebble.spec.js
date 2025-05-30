@@ -2,11 +2,12 @@
  * Pebble Challenge Test Server tests
  */
 
-const dns = require('dns').promises;
+const process = require('node:process');
+const dns = require('node:dns/promises');
 const { assert } = require('chai');
 const { v4: uuid } = require('uuid');
-const cts = require('./challtestsrv');
-const axios = require('./../src/axios');
+const cts = require('./challtestsrv.js');
+const axios = require('./../src/axios.js');
 
 const domainName = process.env.ACME_DOMAIN_NAME || 'example.com';
 const httpPort = axios.defaults.acmeSettings.httpChallengePort || 80;

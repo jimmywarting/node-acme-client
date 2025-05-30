@@ -2,13 +2,14 @@
  * Setup testing
  */
 
-const url = require('url');
-const net = require('net');
-const fs = require('fs');
-const dns = require('dns').promises;
+const process = require('node:process');
+const url = require('node:url');
+const net = require('node:net');
+const fs = require('node:fs');
+const dns = require('node:dns/promises');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
-const axios = require('./../src/axios');
+const axios = require('./../src/axios.js');
 
 
 /**

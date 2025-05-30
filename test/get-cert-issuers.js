@@ -3,7 +3,7 @@
  */
 
 const acme = require('./../');
-const util = require('./../src/util');
+const util = require('./../src/util.js');
 
 const pebbleManagementUrl = process.env.ACME_PEBBLE_MANAGEMENT_URL || null;
 

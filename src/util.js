@@ -2,9 +2,9 @@
  * Utility methods
  */
 
-const dns = require('dns').promises;
-const { readCertificateInfo, splitPemChain } = require('./crypto');
-const { log } = require('./logger');
+const dns = require('node:dns/promises');
+const { readCertificateInfo, splitPemChain } = require('./crypto/index.js');
+const { log } = require('./logger.js');
 
 
 /**
